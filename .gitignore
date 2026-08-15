@@ -12,5 +12,6 @@ artifacts/
 playwright-report/
 test-results/
 .worktrees/
+.tools/
 *.log
 *.tsbuildinfo
