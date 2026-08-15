@@ -6,6 +6,8 @@ import { IdeaComposer } from "../features/ideas/IdeaComposer";
 import { IdeaDetail } from "../features/ideas/IdeaDetail";
 import { useIdeas } from "../features/ideas/useIdeas";
 import { createIdea, deleteIdea, updateIdea } from "../features/ideas/ideaRepository";
+import { updateIdeaMedia } from "../features/ideas/ideaRepository";
+import { createImageIdea, removeIdeaImage, uploadIdeaImage } from "../features/ideas/imageUpload";
 import { useCategories } from "../features/categories/useCategories";
 import { createCategory } from "../features/categories/categoryRepository";
 import { queryIdeas } from "../domain/libraryQuery";
@@ -43,6 +45,14 @@ function SecuredWorkspace() {
     await createIdea(input, user.uid, names);
   };
 
+  const saveImageIdea = async (input: IdeaInput, file: File) => {
+    if (!user) throw new Error("Sign in is required.");
+    const names = input.categoryIds
+      .map((id) => categories.find((category) => category.id === id)?.name)
+      .filter((name): name is string => Boolean(name));
+    await createImageIdea(input, file, user.uid, names);
+  };
+
   const saveSelectedIdea = async (updates: Partial<IdeaInput>) => {
     if (!user || !selectedIdea) throw new Error("No idea is selected.");
     const nextCategoryIds = updates.categoryIds ?? selectedIdea.categoryIds;
@@ -54,8 +64,17 @@ function SecuredWorkspace() {
 
   const deleteSelectedIdea = async () => {
     if (!selectedIdea) return;
+    await removeIdeaImage(selectedIdea.customImagePath).catch(() => undefined);
     await deleteIdea(selectedIdea.id);
     setSelectedIdea(null);
+  };
+
+  const replaceSelectedImage = async (file: File) => {
+    if (!selectedIdea || !user) return;
+    const previousPath = selectedIdea.customImagePath;
+    const uploaded = await uploadIdeaImage({ ideaId: selectedIdea.id, file });
+    await updateIdeaMedia(selectedIdea.id, uploaded, user.uid);
+    await removeIdeaImage(previousPath).catch(() => undefined);
   };
 
   return (
@@ -78,6 +97,7 @@ function SecuredWorkspace() {
           categories={categories}
           onClose={() => setComposerOpen(false)}
           onCreateIdea={saveNewIdea}
+          onCreateImageIdea={saveImageIdea}
           onCreateCategory={createNewCategory}
         />
         {selectedIdea && (
@@ -88,6 +108,7 @@ function SecuredWorkspace() {
             onSave={saveSelectedIdea}
             onDelete={deleteSelectedIdea}
             onCreateCategory={createNewCategory}
+            onReplaceImage={replaceSelectedImage}
           />
         )}
       </>

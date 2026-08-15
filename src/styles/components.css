@@ -285,6 +285,28 @@
 .category-filter.active { border-color: var(--glass-border-hover); color: var(--ivory-100); background: rgba(244, 239, 230, 0.08); }
 .library-loading { position: relative; display: grid; min-height: 50vh; place-items: center; overflow: hidden; color: var(--stone-300); }
 
+.image-dropzone label {
+  display: flex;
+  gap: 0.85rem;
+  align-items: center;
+  justify-content: center;
+  min-height: 9rem;
+  padding: 1.2rem;
+  border: 1px dashed rgba(237, 199, 131, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--stone-300);
+  background: rgba(244, 239, 230, 0.025);
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease;
+}
+
+.image-dropzone label:hover { border-color: var(--amber-300); background: rgba(213, 166, 90, 0.045); }
+.image-dropzone label > span { display: grid; gap: 0.25rem; }
+.image-dropzone label strong { color: var(--ivory-200); font-size: 0.78rem; }
+.image-dropzone label small { color: var(--stone-400); font-size: 0.68rem; }
+.image-dropzone.compact label { min-height: 3.2rem; justify-content: flex-start; border-style: solid; }
+.image-dropzone .form-error { margin-top: 0.55rem; }
+
 @media (max-width: 620px) {
   .composer-modes { grid-template-columns: 1fr; }
   .composer-mode { justify-content: flex-start; padding: 0 0.8rem; }

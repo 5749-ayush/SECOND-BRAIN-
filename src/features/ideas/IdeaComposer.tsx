@@ -6,6 +6,7 @@ import { detectSourceType } from "../../domain/source";
 import { Button } from "../../components/Button";
 import { Modal } from "../../components/Modal";
 import { CategoryPicker } from "../categories/CategoryPicker";
+import { ImageDropzone } from "../../components/ImageDropzone";
 
 type ComposerMode = "link" | "image" | "note";
 
@@ -15,6 +16,7 @@ interface IdeaComposerProps {
   onClose: () => void;
   onCreateIdea: (input: IdeaInput) => Promise<void>;
   onCreateCategory: (name: string) => Promise<Category>;
+  onCreateImageIdea?: (input: IdeaInput, file: File) => Promise<void>;
 }
 
 const modeDetails = [
@@ -28,7 +30,8 @@ export function IdeaComposer({
   categories,
   onClose,
   onCreateIdea,
-  onCreateCategory
+  onCreateCategory,
+  onCreateImageIdea
 }: IdeaComposerProps) {
   const [mode, setMode] = useState<ComposerMode>("link");
   const [url, setUrl] = useState("");
@@ -38,6 +41,7 @@ export function IdeaComposer({
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -48,13 +52,14 @@ export function IdeaComposer({
     setFilmDate("");
     setCategoryIds([]);
     setError(null);
+    setImageFile(null);
   }, [open]);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     setError(null);
-    if (mode === "image") {
-      setError("Choose an image below to save this visual reference.");
+    if (mode === "image" && !imageFile) {
+      setError("Choose an image to save this visual reference.");
       return;
     }
 
@@ -62,7 +67,7 @@ export function IdeaComposer({
       const trimmedUrl = url.trim();
       const input = ideaInputSchema.parse({
         kind: mode,
-        sourceType: mode === "link" ? detectSourceType(trimmedUrl) : "note",
+        sourceType: mode === "link" ? detectSourceType(trimmedUrl) : mode === "image" ? "image" : "note",
         url: mode === "link" ? trimmedUrl : null,
         title,
         note,
@@ -71,7 +76,11 @@ export function IdeaComposer({
         filmDate: filmDate || null
       });
       setSaving(true);
-      await onCreateIdea(input);
+      if (mode === "image" && imageFile && onCreateImageIdea) {
+        await onCreateImageIdea(input, imageFile);
+      } else {
+        await onCreateIdea(input);
+      }
       onClose();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "This idea could not be saved.");
@@ -120,10 +129,7 @@ export function IdeaComposer({
         )}
 
         {mode === "image" && (
-          <div className="image-placeholder">
-            <FileImage size={26} />
-            <p>Image upload is prepared in the next secure storage step.</p>
-          </div>
+          <ImageDropzone onFile={setImageFile} disabled={saving} />
         )}
 
         <div className="form-grid">

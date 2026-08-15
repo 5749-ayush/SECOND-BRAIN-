@@ -5,6 +5,7 @@ import type { Idea, IdeaInput } from "../../domain/idea";
 import { Button } from "../../components/Button";
 import { Modal } from "../../components/Modal";
 import { CategoryPicker } from "../categories/CategoryPicker";
+import { ImageDropzone } from "../../components/ImageDropzone";
 
 interface IdeaDetailProps {
   idea: Idea;
@@ -13,6 +14,7 @@ interface IdeaDetailProps {
   onSave: (updates: Partial<IdeaInput>) => Promise<void>;
   onDelete: () => Promise<void>;
   onCreateCategory: (name: string) => Promise<Category>;
+  onReplaceImage?: (file: File) => Promise<void>;
 }
 
 export function IdeaDetail({
@@ -21,7 +23,8 @@ export function IdeaDetail({
   onClose,
   onSave,
   onDelete,
-  onCreateCategory
+  onCreateCategory,
+  onReplaceImage
 }: IdeaDetailProps) {
   const [title, setTitle] = useState(idea.title);
   const [note, setNote] = useState(idea.note);
@@ -53,6 +56,9 @@ export function IdeaDetail({
       <form className="idea-form" onSubmit={submit}>
         {idea.previewImageUrl && (
           <img className="detail-preview" src={idea.previewImageUrl} alt="" />
+        )}
+        {onReplaceImage && (
+          <ImageDropzone compact onFile={(file) => void onReplaceImage(file)} />
         )}
         {idea.url && (
           <a className="source-link" href={idea.url} target="_blank" rel="noreferrer">

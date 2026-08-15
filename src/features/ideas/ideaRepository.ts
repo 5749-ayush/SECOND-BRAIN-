@@ -105,3 +105,17 @@ export async function updateIdea(
 export async function deleteIdea(ideaId: string) {
   await deleteDoc(doc(db, `workspaces/${WORKSPACE_ID}/ideas/${ideaId}`));
 }
+
+export async function updateIdeaMedia(
+  ideaId: string,
+  media: { path: string; downloadUrl: string },
+  actorId: string
+) {
+  await updateDoc(doc(db, `workspaces/${WORKSPACE_ID}/ideas/${ideaId}`), {
+    customImagePath: media.path,
+    previewImageUrl: media.downloadUrl,
+    metadataStatus: "not_required",
+    updatedAt: serverTimestamp(),
+    updatedBy: actorId
+  });
+}

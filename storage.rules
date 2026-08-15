@@ -1,6 +1,22 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+    function isMember() {
+      return request.auth != null
+        && firestore.exists(/databases/(default)/documents/workspaces/main/members/$(request.auth.uid))
+        && firestore.get(/databases/(default)/documents/workspaces/main/members/$(request.auth.uid)).data.status == "active";
+    }
+
+    match /workspaces/{workspaceId}/ideas/{ideaId}/{fileName} {
+      allow read: if workspaceId == "main" && isMember();
+      allow create, update: if workspaceId == "main"
+        && isMember()
+        && request.resource != null
+        && request.resource.size <= 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp|gif)');
+      allow delete: if workspaceId == "main" && isMember();
+    }
+
     match /{path=**} {
       allow read, write: if false;
     }
