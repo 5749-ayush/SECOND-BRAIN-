@@ -322,6 +322,26 @@
 .metadata-fallback strong { color: var(--ivory-200); font-size: 0.75rem; }
 .metadata-fallback span { color: var(--stone-400); font-size: 0.68rem; line-height: 1.45; }
 
+.settings-section { display: grid; gap: 1rem; }
+.settings-section-heading { display: flex; gap: 0.8rem; align-items: flex-start; }
+.settings-section-heading h3 { margin: 0 0 0.25rem; font-family: var(--font-display); font-size: 1.35rem; font-weight: 400; }
+.settings-section-heading p { margin: 0; color: var(--stone-400); font-size: 0.72rem; line-height: 1.5; }
+.settings-icon { display: grid; flex: 0 0 auto; width: 2.4rem; height: 2.4rem; place-items: center; border: 1px solid var(--glass-border); border-radius: 50%; color: var(--amber-300); }
+.member-invite-form { display: grid; grid-template-columns: 1fr auto; gap: 0.65rem; align-items: end; }
+.access-list { display: grid; border-top: 1px solid var(--glass-border); }
+.access-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 0.7rem; align-items: center; padding: 0.8rem 0; border-bottom: 1px solid rgba(244, 239, 230, 0.07); }
+.member-avatar { display: grid; width: 2.1rem; height: 2.1rem; place-items: center; border-radius: 50%; color: var(--ink-950); background: var(--amber-300); font-size: 0.72rem; font-weight: 800; }
+.member-avatar.pending { color: var(--stone-300); background: rgba(244, 239, 230, 0.08); }
+.access-identity { display: grid; min-width: 0; gap: 0.18rem; }
+.access-identity strong { overflow: hidden; font-size: 0.76rem; text-overflow: ellipsis; white-space: nowrap; }
+.access-identity span { overflow: hidden; color: var(--stone-400); font-size: 0.66rem; text-overflow: ellipsis; white-space: nowrap; }
+.access-status { padding: 0.25rem 0.45rem; border-radius: var(--radius-pill); color: var(--amber-300); background: rgba(213, 166, 90, 0.08); font-size: 0.6rem; text-transform: uppercase; }
+.access-status.pending { color: var(--stone-300); background: rgba(244, 239, 230, 0.06); }
+
+@media (max-width: 620px) {
+  .member-invite-form { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 620px) {
   .composer-modes { grid-template-columns: 1fr; }
   .composer-mode { justify-content: flex-start; padding: 0 0.8rem; }
