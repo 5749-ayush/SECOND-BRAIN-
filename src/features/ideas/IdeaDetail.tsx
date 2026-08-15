@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { ArrowUpRight, Trash2 } from "lucide-react";
+import { ArrowUpRight, RefreshCw, Trash2 } from "lucide-react";
 import type { Category } from "../../domain/category";
 import type { Idea, IdeaInput } from "../../domain/idea";
 import { Button } from "../../components/Button";
@@ -15,6 +15,7 @@ interface IdeaDetailProps {
   onDelete: () => Promise<void>;
   onCreateCategory: (name: string) => Promise<Category>;
   onReplaceImage?: (file: File) => Promise<void>;
+  onRetryMetadata?: () => Promise<void>;
 }
 
 export function IdeaDetail({
@@ -24,7 +25,8 @@ export function IdeaDetail({
   onSave,
   onDelete,
   onCreateCategory,
-  onReplaceImage
+  onReplaceImage,
+  onRetryMetadata
 }: IdeaDetailProps) {
   const [title, setTitle] = useState(idea.title);
   const [note, setNote] = useState(idea.note);
@@ -33,6 +35,7 @@ export function IdeaDetail({
   const [categoryIds, setCategoryIds] = useState(idea.categoryIds);
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [retrying, setRetrying] = useState(false);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -64,6 +67,31 @@ export function IdeaDetail({
           <a className="source-link" href={idea.url} target="_blank" rel="noreferrer">
             Open original source <ArrowUpRight size={15} />
           </a>
+        )}
+        {idea.metadataStatus === "failed" && onRetryMetadata && (
+          <div className="metadata-fallback">
+            <div>
+              <strong>Preview unavailable</strong>
+              <span>The source may be restricting access. You can edit the fields manually or try again.</span>
+            </div>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              icon={<RefreshCw size={14} />}
+              loading={retrying}
+              onClick={async () => {
+                setRetrying(true);
+                try {
+                  await onRetryMetadata();
+                } finally {
+                  setRetrying(false);
+                }
+              }}
+            >
+              Retry preview
+            </Button>
+          </div>
         )}
         <div className="form-grid">
           <label className="form-field form-field-wide">

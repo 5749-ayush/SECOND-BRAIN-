@@ -15,6 +15,8 @@ import {
 } from "firebase/firestore";
 import type { Idea, IdeaInput } from "../../domain/idea";
 import { db, WORKSPACE_ID } from "../../lib/firebase";
+import { cloudFunctions } from "../../lib/firebase";
+import { httpsCallable } from "firebase/functions";
 
 function timestampToIso(value: Timestamp | string | null | undefined): string | null {
   if (!value) return null;
@@ -118,4 +120,12 @@ export async function updateIdeaMedia(
     updatedAt: serverTimestamp(),
     updatedBy: actorId
   });
+}
+
+export async function requestIdeaEnrichment(ideaId: string) {
+  const enrich = httpsCallable<{ ideaId: string }, { status: "ready" | "failed" }>(
+    cloudFunctions,
+    "enrichIdea"
+  );
+  return enrich({ ideaId });
 }

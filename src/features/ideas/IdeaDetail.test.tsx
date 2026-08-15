@@ -47,4 +47,22 @@ describe("IdeaDetail", () => {
     await userEvent.click(screen.getByRole("button", { name: /yes, delete/i }));
     expect(onDelete).toHaveBeenCalledOnce();
   });
+
+  it("offers metadata retry after a preview failure", async () => {
+    const onRetryMetadata = vi.fn().mockResolvedValue(undefined);
+    render(
+      <IdeaDetail
+        idea={{ ...richIdea, metadataStatus: "failed", metadataErrorCode: "blocked" }}
+        categories={[]}
+        onClose={vi.fn()}
+        onSave={vi.fn()}
+        onDelete={vi.fn()}
+        onCreateCategory={vi.fn()}
+        onRetryMetadata={onRetryMetadata}
+      />
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: /retry preview/i }));
+    expect(onRetryMetadata).toHaveBeenCalledOnce();
+  });
 });

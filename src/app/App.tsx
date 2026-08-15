@@ -5,7 +5,7 @@ import { LibraryScreen } from "../features/ideas/LibraryScreen";
 import { IdeaComposer } from "../features/ideas/IdeaComposer";
 import { IdeaDetail } from "../features/ideas/IdeaDetail";
 import { useIdeas } from "../features/ideas/useIdeas";
-import { createIdea, deleteIdea, updateIdea } from "../features/ideas/ideaRepository";
+import { createIdea, deleteIdea, requestIdeaEnrichment, updateIdea } from "../features/ideas/ideaRepository";
 import { updateIdeaMedia } from "../features/ideas/ideaRepository";
 import { createImageIdea, removeIdeaImage, uploadIdeaImage } from "../features/ideas/imageUpload";
 import { useCategories } from "../features/categories/useCategories";
@@ -42,7 +42,10 @@ function SecuredWorkspace() {
     const names = input.categoryIds
       .map((id) => categories.find((category) => category.id === id)?.name)
       .filter((name): name is string => Boolean(name));
-    await createIdea(input, user.uid, names);
+    const ideaId = await createIdea(input, user.uid, names);
+    if (input.kind === "link") {
+      void requestIdeaEnrichment(ideaId).catch(() => undefined);
+    }
   };
 
   const saveImageIdea = async (input: IdeaInput, file: File) => {
@@ -77,6 +80,11 @@ function SecuredWorkspace() {
     await removeIdeaImage(previousPath).catch(() => undefined);
   };
 
+  const retrySelectedMetadata = async () => {
+    if (!selectedIdea) return;
+    await requestIdeaEnrichment(selectedIdea.id);
+  };
+
   return (
     <AccessGate state={access} onSignIn={signInWithGoogle} onSignOut={signOutUser}>
       <>
@@ -109,6 +117,7 @@ function SecuredWorkspace() {
             onDelete={deleteSelectedIdea}
             onCreateCategory={createNewCategory}
             onReplaceImage={replaceSelectedImage}
+            onRetryMetadata={retrySelectedMetadata}
           />
         )}
       </>

@@ -307,6 +307,21 @@
 .image-dropzone.compact label { min-height: 3.2rem; justify-content: flex-start; border-style: solid; }
 .image-dropzone .form-error { margin-top: 0.55rem; }
 
+.metadata-fallback {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem;
+  border: 1px solid rgba(213, 166, 90, 0.2);
+  border-radius: var(--radius-sm);
+  background: rgba(213, 166, 90, 0.05);
+}
+
+.metadata-fallback > div { display: grid; gap: 0.25rem; }
+.metadata-fallback strong { color: var(--ivory-200); font-size: 0.75rem; }
+.metadata-fallback span { color: var(--stone-400); font-size: 0.68rem; line-height: 1.45; }
+
 @media (max-width: 620px) {
   .composer-modes { grid-template-columns: 1fr; }
   .composer-mode { justify-content: flex-start; padding: 0 0.8rem; }
