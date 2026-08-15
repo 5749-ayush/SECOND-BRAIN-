@@ -7,6 +7,7 @@ import {
 import { adminDb } from "../shared/firebaseAdmin.js";
 import { WORKSPACE_ID } from "../auth/accessPolicy.js";
 import { enrichIdeaDocument } from "../metadata/enrichIdea.js";
+import { enforceNoteLimit, enforceTitleLimit } from "../metadata/aiTitling.js";
 import type { AgentApiDependencies } from "./agentApi.js";
 import type {
   agentCategoryInputSchema,
@@ -60,7 +61,7 @@ async function listIdeas(query: Record<string, string | undefined>) {
       if (query.filmDateState === "unplanned" && filmDate) return false;
       if (query.filmDateState === "overdue" && (!filmDate || filmDate >= today)) return false;
       if (!text) return true;
-      return [idea.title, idea.note, idea.creatorName, idea.sourceName, idea.url, ...(idea.categoryNames as string[] ?? [])]
+      return [idea.title, idea.note, idea.description, idea.creatorName, idea.sourceName, idea.url, ...(idea.categoryNames as string[] ?? [])]
         .filter(Boolean)
         .join(" ")
         .toLowerCase()
@@ -82,10 +83,15 @@ async function createIdea(
   actorId: string
 ) {
   const reference = workspace.collection("ideas").doc();
+  const title = input.title ? enforceTitleLimit(input.title, 14) : "";
+  const note = input.note ? enforceNoteLimit(input.note, 70) : "";
   await reference.set({
     ...input,
+    title,
+    note,
     canonicalUrl: null,
     sourceName: null,
+    description: null,
     previewImageUrl: null,
     customImagePath: null,
     categoryNames: await categoryNames(input.categoryIds),
@@ -108,8 +114,15 @@ async function updateIdea(
 ) {
   const reference = workspace.collection("ideas").doc(id);
   if (!(await reference.get()).exists) throw new Error("Idea not found.");
+  const updates: Record<string, unknown> = { ...input };
+  if (typeof input.title === "string") {
+    updates.title = enforceTitleLimit(input.title, 14);
+  }
+  if (typeof input.note === "string") {
+    updates.note = enforceNoteLimit(input.note, 70);
+  }
   await reference.update({
-    ...input,
+    ...updates,
     ...(input.categoryIds ? { categoryNames: await categoryNames(input.categoryIds) } : {}),
     updatedAt: FieldValue.serverTimestamp(),
     updatedBy: `agent:${actorId}`

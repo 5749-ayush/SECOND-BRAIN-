@@ -14,6 +14,8 @@ import {
   type Unsubscribe
 } from "firebase/firestore";
 import type { Idea, IdeaInput } from "../../domain/idea";
+import { enforceIdeaNote, enforceIdeaTitle } from "../../domain/idea";
+import { getXThumbnail, getYouTubeThumbnail, isDirectImageUrl } from "../../domain/source";
 import { db, WORKSPACE_ID } from "../../lib/firebase";
 import { cloudFunctions } from "../../lib/firebase";
 import { httpsCallable } from "firebase/functions";
@@ -34,6 +36,7 @@ function fromIdeaDocument(snapshot: QueryDocumentSnapshot<DocumentData>): Idea {
     canonicalUrl: data.canonicalUrl ?? null,
     title: data.title ?? "",
     note: data.note ?? "",
+    description: data.description ?? null,
     creatorName: data.creatorName ?? null,
     sourceName: data.sourceName ?? null,
     previewImageUrl: data.previewImageUrl ?? null,
@@ -72,11 +75,28 @@ export async function createIdea(
   categoryNames: string[]
 ): Promise<string> {
   const ideaRef = doc(collection(db, `workspaces/${WORKSPACE_ID}/ideas`));
+  const sanitizedTitle = input.title ? enforceIdeaTitle(input.title, 14) : "";
+  const sanitizedNote = input.note ? enforceIdeaNote(input.note, 70) : "";
+
+  let initialPreviewImageUrl: string | null = null;
+  if (input.kind === "link" && input.url) {
+    if (input.sourceType === "youtube") {
+      initialPreviewImageUrl = getYouTubeThumbnail(input.url);
+    } else if (input.sourceType === "x") {
+      initialPreviewImageUrl = getXThumbnail(input.url, sanitizedTitle, input.creatorName);
+    } else if (isDirectImageUrl(input.url)) {
+      initialPreviewImageUrl = input.url;
+    }
+  }
+
   await setDoc(ideaRef, {
     ...input,
+    title: sanitizedTitle,
+    note: sanitizedNote,
     canonicalUrl: null,
     sourceName: null,
-    previewImageUrl: null,
+    description: null,
+    previewImageUrl: initialPreviewImageUrl,
     customImagePath: null,
     categoryNames,
     metadataStatus: input.kind === "link" ? "pending" : "not_required",
@@ -96,8 +116,16 @@ export async function updateIdea(
   actorId: string,
   categoryNames?: string[]
 ) {
+  const sanitizedUpdates: Partial<IdeaInput> = { ...updates };
+  if (typeof updates.title === "string") {
+    sanitizedUpdates.title = enforceIdeaTitle(updates.title, 14);
+  }
+  if (typeof updates.note === "string") {
+    sanitizedUpdates.note = enforceIdeaNote(updates.note, 70);
+  }
+
   await updateDoc(doc(db, `workspaces/${WORKSPACE_ID}/ideas/${ideaId}`), {
-    ...updates,
+    ...sanitizedUpdates,
     ...(categoryNames ? { categoryNames } : {}),
     updatedAt: serverTimestamp(),
     updatedBy: actorId
@@ -129,3 +157,41 @@ export async function requestIdeaEnrichment(ideaId: string) {
   );
   return enrich({ ideaId });
 }
+
+export async function requestTitleSuggestion(payload: {
+  rawTitle?: string | null;
+  description?: string | null;
+  note?: string | null;
+  creatorName?: string | null;
+  sourceType?: string | null;
+  url?: string | null;
+  imageUrl?: string | null;
+}): Promise<string> {
+  const suggest = httpsCallable<typeof payload, { title: string; note?: string }>(
+    cloudFunctions,
+    "suggestTitle"
+  );
+  const result = await suggest(payload);
+  return enforceIdeaTitle(result.data.title, 14);
+}
+
+export async function requestTitleAndNoteSuggestion(payload: {
+  rawTitle?: string | null;
+  description?: string | null;
+  note?: string | null;
+  creatorName?: string | null;
+  sourceType?: string | null;
+  url?: string | null;
+  imageUrl?: string | null;
+}): Promise<{ title: string; note: string }> {
+  const suggest = httpsCallable<typeof payload, { title: string; note: string }>(
+    cloudFunctions,
+    "suggestTitle"
+  );
+  const result = await suggest(payload);
+  return {
+    title: enforceIdeaTitle(result.data.title, 14),
+    note: enforceIdeaNote(result.data.note, 70)
+  };
+}
+

@@ -101,6 +101,31 @@ describe("queryIdeas", () => {
     expect(result.map((idea) => idea.id)).toEqual(["overdue-article"]);
   });
 
+  it("finds text in idea.description", () => {
+    const ideasWithDesc: Idea[] = [
+      ...ideas,
+      {
+        ...ideas[0]!,
+        id: "desc-idea",
+        title: "Unique Title",
+        note: "",
+        description: "Viral cinematic lighting techniques",
+        categoryNames: []
+      }
+    ];
+
+    const result = queryIdeas(ideasWithDesc, {
+      text: "cinematic lighting",
+      categoryIds: [],
+      sourceTypes: [],
+      filmDateState: "any",
+      sort: "newest",
+      today: "2026-08-15"
+    });
+
+    expect(result.map((idea) => idea.id)).toEqual(["desc-idea"]);
+  });
+
   it("identifies overdue and unplanned ideas", () => {
     const overdue = queryIdeas(ideas, {
       text: "",

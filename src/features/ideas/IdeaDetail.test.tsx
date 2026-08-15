@@ -65,4 +65,34 @@ describe("IdeaDetail", () => {
     await userEvent.click(screen.getByRole("button", { name: /retry preview/i }));
     expect(onRetryMetadata).toHaveBeenCalledOnce();
   });
+
+  it("loads existing note and persists edited notes correctly", async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(
+      <IdeaDetail
+        idea={{
+          ...richIdea,
+          note: "Existing note on video structure."
+        }}
+        categories={[]}
+        onClose={vi.fn()}
+        onSave={onSave}
+        onDelete={vi.fn()}
+        onCreateCategory={vi.fn()}
+      />
+    );
+
+    const notesInput = screen.getByLabelText(/^notes$/i);
+    expect(notesInput).toHaveValue("Existing note on video structure.");
+
+    await userEvent.clear(notesInput);
+    await userEvent.type(notesInput, "Updated takeaway notes for filming.");
+    await userEvent.click(screen.getByRole("button", { name: /save changes/i }));
+
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        note: "Updated takeaway notes for filming."
+      })
+    );
+  });
 });

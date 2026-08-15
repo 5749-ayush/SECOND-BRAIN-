@@ -33,6 +33,9 @@ function SecuredWorkspace() {
     today: new Date().toISOString().slice(0, 10)
   });
   const visibleIdeas = useMemo(() => queryIdeas(ideas, query), [ideas, query]);
+  const activeSelectedIdea = selectedIdea
+    ? ideas.find((idea) => idea.id === selectedIdea.id) ?? selectedIdea
+    : null;
 
   const createNewCategory = (name: string) => {
     if (!user) return Promise.reject(new Error("Sign in is required."));
@@ -59,32 +62,32 @@ function SecuredWorkspace() {
   };
 
   const saveSelectedIdea = async (updates: Partial<IdeaInput>) => {
-    if (!user || !selectedIdea) throw new Error("No idea is selected.");
-    const nextCategoryIds = updates.categoryIds ?? selectedIdea.categoryIds;
+    if (!user || !activeSelectedIdea) throw new Error("No idea is selected.");
+    const nextCategoryIds = updates.categoryIds ?? activeSelectedIdea.categoryIds;
     const names = nextCategoryIds
       .map((id) => categories.find((category) => category.id === id)?.name)
       .filter((name): name is string => Boolean(name));
-    await updateIdea(selectedIdea.id, updates, user.uid, names);
+    await updateIdea(activeSelectedIdea.id, updates, user.uid, names);
   };
 
   const deleteSelectedIdea = async () => {
-    if (!selectedIdea) return;
-    await removeIdeaImage(selectedIdea.customImagePath).catch(() => undefined);
-    await deleteIdea(selectedIdea.id);
+    if (!activeSelectedIdea) return;
+    await removeIdeaImage(activeSelectedIdea.customImagePath).catch(() => undefined);
+    await deleteIdea(activeSelectedIdea.id);
     setSelectedIdea(null);
   };
 
   const replaceSelectedImage = async (file: File) => {
-    if (!selectedIdea || !user) return;
-    const previousPath = selectedIdea.customImagePath;
-    const uploaded = await uploadIdeaImage({ ideaId: selectedIdea.id, file });
-    await updateIdeaMedia(selectedIdea.id, uploaded, user.uid);
+    if (!activeSelectedIdea || !user) return;
+    const previousPath = activeSelectedIdea.customImagePath;
+    const uploaded = await uploadIdeaImage({ ideaId: activeSelectedIdea.id, file });
+    await updateIdeaMedia(activeSelectedIdea.id, uploaded, user.uid);
     await removeIdeaImage(previousPath).catch(() => undefined);
   };
 
   const retrySelectedMetadata = async () => {
-    if (!selectedIdea) return;
-    await requestIdeaEnrichment(selectedIdea.id);
+    if (!activeSelectedIdea) return;
+    await requestIdeaEnrichment(activeSelectedIdea.id);
   };
 
   return (
@@ -110,9 +113,9 @@ function SecuredWorkspace() {
           onCreateImageIdea={saveImageIdea}
           onCreateCategory={createNewCategory}
         />
-        {selectedIdea && (
+        {activeSelectedIdea && (
           <IdeaDetail
-            idea={selectedIdea}
+            idea={activeSelectedIdea}
             categories={categories}
             onClose={() => setSelectedIdea(null)}
             onSave={saveSelectedIdea}

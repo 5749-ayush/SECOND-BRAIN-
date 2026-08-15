@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { FileImage, Lightbulb, Link2 } from "lucide-react";
+import { FileImage, Lightbulb, Link2, Sparkles } from "lucide-react";
 import type { Category } from "../../domain/category";
 import { ideaInputSchema, type IdeaInput } from "../../domain/idea";
 import { detectSourceType } from "../../domain/source";
@@ -7,6 +7,7 @@ import { Button } from "../../components/Button";
 import { Modal } from "../../components/Modal";
 import { CategoryPicker } from "../categories/CategoryPicker";
 import { ImageDropzone } from "../../components/ImageDropzone";
+import { requestTitleAndNoteSuggestion, requestTitleSuggestion } from "./ideaRepository";
 
 type ComposerMode = "link" | "image" | "note";
 
@@ -40,6 +41,8 @@ export function IdeaComposer({
   const [filmDate, setFilmDate] = useState("");
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [suggestingTitle, setSuggestingTitle] = useState(false);
+  const [suggestingNote, setSuggestingNote] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
@@ -53,7 +56,47 @@ export function IdeaComposer({
     setCategoryIds([]);
     setError(null);
     setImageFile(null);
+    setSuggestingTitle(false);
+    setSuggestingNote(false);
   }, [open]);
+
+  const handleSuggestTitle = async () => {
+    setSuggestingTitle(true);
+    try {
+      const suggested = await requestTitleSuggestion({
+        rawTitle: title.trim() || null,
+        note: note.trim() || null,
+        url: url.trim() || null,
+        sourceType: mode === "link" && url.trim() ? detectSourceType(url.trim()) : mode
+      });
+      if (suggested) {
+        setTitle(suggested);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSuggestingTitle(false);
+    }
+  };
+
+  const handleSuggestNote = async () => {
+    setSuggestingNote(true);
+    try {
+      const result = await requestTitleAndNoteSuggestion({
+        rawTitle: title.trim() || null,
+        note: note.trim() || null,
+        url: url.trim() || null,
+        sourceType: mode === "link" && url.trim() ? detectSourceType(url.trim()) : mode
+      });
+      if (result?.note) {
+        setNote(result.note);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSuggestingNote(false);
+    }
+  };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -133,25 +176,65 @@ export function IdeaComposer({
         )}
 
         <div className="form-grid">
-          <label className="form-field form-field-wide">
-            <span>Title <em>optional</em></span>
+          <div className="form-field form-field-wide">
+            <div className="field-label-row">
+              <label htmlFor="composer-title" className="field-label">
+                Title <em>optional</em>
+              </label>
+              {(url.trim() || note.trim() || title.trim()) && (
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    void handleSuggestTitle();
+                  }}
+                  disabled={suggestingTitle}
+                  title="Generate a clean, literal title under 6 words"
+                >
+                  <Sparkles size={12} />
+                  <span>{suggestingTitle ? "Generating…" : "Suggest title"}</span>
+                </button>
+              )}
+            </div>
             <input
+              id="composer-title"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               maxLength={240}
               placeholder={mode === "note" ? "Give the thought a name" : "Override the fetched title"}
             />
-          </label>
-          <label className="form-field form-field-wide">
-            <span>Notes <em>optional</em></span>
+          </div>
+          <div className="form-field form-field-wide">
+            <div className="field-label-row">
+              <label htmlFor="composer-notes" className="field-label">
+                Notes <em>optional</em>
+              </label>
+              {(url.trim() || title.trim()) && (
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    void handleSuggestNote();
+                  }}
+                  disabled={suggestingNote}
+                  title="Generate a 20-25 word explanatory note using AI"
+                >
+                  <Sparkles size={12} />
+                  <span>{suggestingNote ? "Generating…" : "Suggest note"}</span>
+                </button>
+              )}
+            </div>
             <textarea
+              id="composer-notes"
               value={note}
               onChange={(event) => setNote(event.target.value)}
               maxLength={10_000}
               rows={4}
               placeholder="What caught your attention? How might you use it?"
             />
-          </label>
+          </div>
           <label className="form-field">
             <span>Planned film date <em>optional</em></span>
             <input type="date" value={filmDate} onChange={(event) => setFilmDate(event.target.value)} />

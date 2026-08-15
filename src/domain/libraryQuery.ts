@@ -16,6 +16,7 @@ function searchDocument(idea: Idea): string {
   return [
     idea.title,
     idea.note,
+    idea.description,
     idea.creatorName,
     idea.sourceName,
     idea.url,
