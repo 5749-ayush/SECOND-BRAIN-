@@ -27,6 +27,41 @@ describe("AccessGate", () => {
     expect(onSignIn).toHaveBeenCalledOnce();
   });
 
+  it("shows connecting spinner and disables button while signing in", () => {
+    render(
+      <AccessGate
+        state={{ status: "signedOut" }}
+        onSignIn={vi.fn()}
+        onSignOut={vi.fn()}
+        isSigningIn={true}
+      >
+        <p>Private library</p>
+      </AccessGate>
+    );
+
+    const button = screen.getByRole("button", { name: /connecting to google/i });
+    expect(button).toBeDisabled();
+  });
+
+  it("displays error message if sign-in fails or domain is unauthorized", () => {
+    render(
+      <AccessGate
+        state={{
+          status: "signedOut",
+          error: "Domain 'second-brain-three-cyan.vercel.app' is not authorized."
+        }}
+        onSignIn={vi.fn()}
+        onSignOut={vi.fn()}
+      >
+        <p>Private library</p>
+      </AccessGate>
+    );
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Domain 'second-brain-three-cyan.vercel.app' is not authorized."
+    );
+  });
+
   it("does not reveal the library to an unapproved account", async () => {
     const onSignOut = vi.fn();
     render(

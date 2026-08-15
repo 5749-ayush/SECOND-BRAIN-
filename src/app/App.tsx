@@ -16,8 +16,7 @@ import type { LibraryQuery } from "../domain/libraryQuery";
 import { ProfileSettings } from "../features/auth/ProfileSettings";
 
 function SecuredWorkspace() {
-  const { access, signInWithGoogle, signOutUser } = useAuth();
-  const { user } = useAuth();
+  const { access, isSigningIn, signInWithGoogle, signOutUser, user } = useAuth();
   const authorized = access.status === "authorized" && Boolean(user);
   const { ideas, loading, error } = useIdeas(authorized);
   const categories = useCategories(authorized);
@@ -91,7 +90,12 @@ function SecuredWorkspace() {
   };
 
   return (
-    <AccessGate state={access} onSignIn={signInWithGoogle} onSignOut={signOutUser}>
+    <AccessGate
+      state={access}
+      onSignIn={signInWithGoogle}
+      onSignOut={signOutUser}
+      isSigningIn={isSigningIn}
+    >
       <>
         <LibraryScreen
           ideas={visibleIdeas}

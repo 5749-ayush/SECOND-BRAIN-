@@ -3,7 +3,7 @@ import type { Member } from "../../domain/member";
 
 export type AccessState =
   | { status: "loading" }
-  | { status: "signedOut" }
+  | { status: "signedOut"; error?: string }
   | { status: "setupError"; email: string }
   | { status: "unauthorized"; email: string }
   | { status: "authorized"; member: Member };
@@ -12,10 +12,17 @@ interface AccessGateProps {
   state: AccessState;
   onSignIn: () => void | Promise<void>;
   onSignOut: () => void | Promise<void>;
+  isSigningIn?: boolean;
   children: ReactNode;
 }
 
-export function AccessGate({ state, onSignIn, onSignOut, children }: AccessGateProps) {
+export function AccessGate({
+  state,
+  onSignIn,
+  onSignOut,
+  isSigningIn = false,
+  children
+}: AccessGateProps) {
   if (state.status === "loading") {
     return (
       <main className="auth-screen" aria-live="polite">
@@ -35,8 +42,25 @@ export function AccessGate({ state, onSignIn, onSignOut, children }: AccessGateP
         <p className="auth-copy">
           Bring links, screenshots, hooks, and half-formed thoughts into one calm place.
         </p>
-        <button className="button button-primary" type="button" onClick={onSignIn}>
-          Continue with Google
+        {state.error && (
+          <p className="form-error auth-error" role="alert">
+            {state.error}
+          </p>
+        )}
+        <button
+          className="button button-primary"
+          type="button"
+          onClick={onSignIn}
+          disabled={isSigningIn}
+        >
+          {isSigningIn ? (
+            <>
+              <span className="button-spinner" aria-hidden="true" />
+              Connecting to Google…
+            </>
+          ) : (
+            "Continue with Google"
+          )}
         </button>
       </main>
     );
