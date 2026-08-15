@@ -1,0 +1,30 @@
+:root {
+  color-scheme: dark;
+  --ink-1000: #040a0e;
+  --ink-950: #071218;
+  --ink-900: #0b1921;
+  --ink-850: #10212a;
+  --ink-800: #122630;
+  --ink-700: #1c3540;
+  --ivory-100: #f4efe6;
+  --ivory-200: #e8e0d4;
+  --stone-300: #b8b2a8;
+  --stone-400: #918d86;
+  --amber-300: #edc783;
+  --amber-400: #d5a65a;
+  --amber-500: #b88437;
+  --danger: #e88f82;
+  --glass: rgba(18, 38, 48, 0.64);
+  --glass-strong: rgba(16, 33, 42, 0.88);
+  --glass-border: rgba(244, 239, 230, 0.12);
+  --glass-border-hover: rgba(237, 199, 131, 0.3);
+  --shadow-card: 0 22px 70px rgba(0, 0, 0, 0.28);
+  --shadow-modal: 0 40px 120px rgba(0, 0, 0, 0.58);
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-card: 24px;
+  --radius-pill: 999px;
+  --max-width: 1560px;
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}

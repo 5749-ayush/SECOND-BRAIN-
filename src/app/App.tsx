@@ -1,8 +1,26 @@
+import { AccessGate } from "../features/auth/AccessGate";
+import { AuthProvider, useAuth } from "../features/auth/AuthProvider";
+import { LibraryScreen } from "../features/ideas/LibraryScreen";
+
+function SecuredWorkspace() {
+  const { access, signInWithGoogle, signOutUser } = useAuth();
+
+  return (
+    <AccessGate state={access} onSignIn={signInWithGoogle} onSignOut={signOutUser}>
+      <LibraryScreen
+        ideas={[]}
+        onOpenIdea={() => undefined}
+        onSaveIdea={() => undefined}
+        onOpenProfile={() => undefined}
+      />
+    </AccessGate>
+  );
+}
+
 export function App() {
   return (
-    <main>
-      <p>Private creative workspace</p>
-      <h1>Second Brain</h1>
-    </main>
+    <AuthProvider>
+      <SecuredWorkspace />
+    </AuthProvider>
   );
 }
