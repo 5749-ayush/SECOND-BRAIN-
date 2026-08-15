@@ -4,6 +4,7 @@ import type { Member } from "../../domain/member";
 export type AccessState =
   | { status: "loading" }
   | { status: "signedOut" }
+  | { status: "setupError"; email: string }
   | { status: "unauthorized"; email: string }
   | { status: "authorized"; member: Member };
 
@@ -36,6 +37,22 @@ export function AccessGate({ state, onSignIn, onSignOut, children }: AccessGateP
         </p>
         <button className="button button-primary" type="button" onClick={onSignIn}>
           Continue with Google
+        </button>
+      </main>
+    );
+  }
+
+  if (state.status === "setupError") {
+    return (
+      <main className="auth-screen">
+        <p className="eyebrow">Workspace connection</p>
+        <h1>We could not connect to your workspace.</h1>
+        <p className="auth-copy">
+          Google sign-in worked for <strong>{state.email}</strong>, but the Firebase backend is not available yet.
+          This is not an invitation problem.
+        </p>
+        <button className="button button-secondary" type="button" onClick={onSignOut}>
+          Sign out and try again
         </button>
       </main>
     );

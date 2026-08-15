@@ -79,10 +79,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             };
             setAccess({ status: "authorized", member });
           },
-          () => setAccess({ status: "unauthorized", email: nextUser.email ?? "this account" })
+          () => setAccess({ status: "setupError", email: nextUser.email ?? "this account" })
         );
       } catch {
-        setAccess({ status: "unauthorized", email: nextUser.email ?? "this account" });
+        setAccess({ status: "setupError", email: nextUser.email ?? "this account" });
       }
     });
 

@@ -24,7 +24,7 @@ export const firebaseApp = initializeApp(firebaseConfig);
 export const auth = getAuth(firebaseApp);
 export const db = getFirestore(firebaseApp);
 export const storage = getStorage(firebaseApp);
-export const cloudFunctions = getFunctions(firebaseApp);
+export const cloudFunctions = getFunctions(firebaseApp, "asia-south1");
 export const googleProvider = new GoogleAuthProvider();
 
 googleProvider.setCustomParameters({ prompt: "select_account" });

@@ -70,4 +70,19 @@ describe("AccessGate", () => {
 
     expect(screen.getByText("Private library")).toBeVisible();
   });
+
+  it("shows a connection problem instead of saying the owner was not invited", () => {
+    render(
+      <AccessGate
+        state={{ status: "setupError", email: "ayushamitjain@gmail.com" }}
+        onSignIn={vi.fn()}
+        onSignOut={vi.fn()}
+      >
+        <p>Private library</p>
+      </AccessGate>
+    );
+
+    expect(screen.getByRole("heading", { name: /could not connect/i })).toBeInTheDocument();
+    expect(screen.queryByText(/has not been invited/i)).not.toBeInTheDocument();
+  });
 });
