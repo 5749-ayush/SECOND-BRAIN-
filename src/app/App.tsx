@@ -13,6 +13,7 @@ import { createCategory } from "../features/categories/categoryRepository";
 import { queryIdeas } from "../domain/libraryQuery";
 import type { Idea, IdeaInput } from "../domain/idea";
 import type { LibraryQuery } from "../domain/libraryQuery";
+import { ProfileSettings } from "../features/auth/ProfileSettings";
 
 function SecuredWorkspace() {
   const { access, signInWithGoogle, signOutUser } = useAuth();
@@ -22,6 +23,7 @@ function SecuredWorkspace() {
   const categories = useCategories(authorized);
   const [composerOpen, setComposerOpen] = useState(false);
   const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [query, setQuery] = useState<LibraryQuery>({
     text: "",
     categoryIds: [],
@@ -98,7 +100,7 @@ function SecuredWorkspace() {
           error={error}
           onOpenIdea={setSelectedIdea}
           onSaveIdea={() => setComposerOpen(true)}
-          onOpenProfile={() => undefined}
+          onOpenProfile={() => setProfileOpen(true)}
         />
         <IdeaComposer
           open={composerOpen}
@@ -118,6 +120,15 @@ function SecuredWorkspace() {
             onCreateCategory={createNewCategory}
             onReplaceImage={replaceSelectedImage}
             onRetryMetadata={retrySelectedMetadata}
+          />
+        )}
+        {access.status === "authorized" && user && (
+          <ProfileSettings
+            open={profileOpen}
+            member={access.member}
+            user={user}
+            onClose={() => setProfileOpen(false)}
+            onSignOut={signOutUser}
           />
         )}
       </>
