@@ -44,7 +44,7 @@ export function LibraryScreen({
           <button className="icon-button header-search" type="button" aria-label="Search ideas">
             <Search size={19} />
           </button>
-          <Button icon={<Plus size={18} />} onClick={onSaveIdea}>
+          <Button icon={<Plus size={18} />} onClick={onSaveIdea} aria-label="Save an idea">
             Save an idea
           </Button>
           <button className="profile-button" type="button" onClick={onOpenProfile} aria-label="Open profile">
